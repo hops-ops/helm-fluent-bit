@@ -2,8 +2,17 @@ name: on-push-main
 
 on:
   push:
-    branches: [main]
-    paths: ['.github/workflows/on-push-main.yaml', '.gitops/**', 'apis/**', 'examples/**', 'tests/**', 'functions/**', 'upbound.yaml']
+    branches:
+      - main
+    paths:
+      - '.github/workflows/on-push-main.yaml'
+      - '.github/workflows/on-version-tagged.yaml'
+      - '.gitops/**'
+      - 'apis/**'
+      - 'examples/**'
+      - 'functions/**'
+      - 'tests/**'
+      - 'upbound.yaml'
 
 permissions:
   packages: write
@@ -31,6 +40,21 @@ jobs:
     uses: unbounded-tech/workflows-crossplane/.github/workflows/e2e.yaml@v2.13.0
 
   version-and-tag:
-    needs: [validate, test, e2e]
-    uses: unbounded-tech/workflows-crossplane/.github/workflows/version-and-tag.yaml@v2.13.0
-    secrets: inherit
+    name: Version and Tag
+    needs:
+      - validate
+      - test
+      - e2e
+    uses: unbounded-tech/workflow-vnext-tag/.github/workflows/workflow.yaml@v1.20.2
+    secrets:
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+    with:
+      useDeployKey: true
+      yqPatches: |
+        patches:
+          - filePath: .gitops/deploy/values.yaml
+            selector: .version
+            valuePrefix: "v"
+          - filePath: .gitops/deploy/Chart.yaml
+            selector: .version
+            valuePrefix: ""

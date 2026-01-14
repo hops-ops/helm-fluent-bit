@@ -2,9 +2,21 @@ name: on-pr
 
 on:
   pull_request:
-    branches: [main]
-    types: [labeled, opened, reopened, synchronize]
-    paths: ['.github/workflows/on-pr.yaml', '.gitops/**', 'apis/**', 'examples/**', 'tests/**', 'functions/**', 'upbound.yaml']
+    branches:
+      - main
+    types:
+      - labeled
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - '.github/workflows/on-pr.yaml'
+      - '.gitops/**'
+      - 'apis/**'
+      - 'examples/**'
+      - 'tests/**'
+      - 'functions/**'
+      - 'upbound.yaml'
 
 permissions:
   packages: write
@@ -32,7 +44,10 @@ jobs:
     uses: unbounded-tech/workflows-crossplane/.github/workflows/e2e.yaml@v2.13.0
 
   publish:
-    needs: [validate, test, e2e]
+    needs:
+      - validate
+      - test
+      - e2e
     uses: unbounded-tech/workflows-crossplane/.github/workflows/publish.yaml@v2.13.0
     secrets: inherit
     with:
