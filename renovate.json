@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "crossplane": {
+    "managerFilePatterns": ["/\\.yaml$/", "/\\.yaml\\.gotmpl$/"]
+  },
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchPackagePatterns": ["^xpkg\\.crossplane\\.io/"],
+      "groupName": "crossplane packages"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update Crossplane packages in configuration.yaml",
+      "fileMatch": ["^apis/.*/configuration\\.yaml$"],
+      "matchStrings": [
+        "(?:provider|function):\\s*(?<depName>xpkg\\.crossplane\\.io/[^\\s]+)\\s*version:\\s*['\"]?(?<currentValue>[^'\"\\s]+)['\"]?"
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Crossplane packages in upbound.yaml",
+      "fileMatch": ["^upbound\\.yaml$"],
+      "matchStrings": [
+        "package:\\s*(?<depName>xpkg\\.crossplane\\.io/[^\\s]+)\\s*version:\\s*['\"]?(?<currentValue>[^'\"\\s]+)['\"]?"
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Helm chart versions in gotmpl files",
+      "fileMatch": ["\\.gotmpl$"],
+      "matchStrings": [
+        "repository:\\s*https://fluent\\.github\\.io/helm-charts\\s*version:\\s*(?<currentValue>[^\\s]+)"
+      ],
+      "depNameTemplate": "fluent-bit",
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://fluent.github.io/helm-charts"
+    }
+  ]
+}

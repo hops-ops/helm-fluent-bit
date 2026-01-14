@@ -1,0 +1,18 @@
+apiVersion: helm.hops.ops.com.ai/v1alpha1
+kind: FluentBit
+metadata:
+  name: fluent-bit
+  namespace: example-env
+spec:
+  clusterName: example-cluster
+  labels:
+    team: platform
+  values:
+    config:
+      outputs: |
+        [OUTPUT]
+            Name loki
+            Match *
+            Host loki.monitoring
+            Port 3100
+            Labels job=fluent-bit

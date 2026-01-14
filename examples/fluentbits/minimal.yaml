@@ -1,0 +1,7 @@
+apiVersion: helm.hops.ops.com.ai/v1alpha1
+kind: FluentBit
+metadata:
+  name: fluent-bit
+  namespace: example-env
+spec:
+  clusterName: example-cluster
