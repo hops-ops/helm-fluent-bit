@@ -3,6 +3,14 @@ import math
 import models.ai.com.ops.hops.helm.v1alpha1 as helmv1alpha1
 import models.io.upbound.dev.meta.v1alpha1 as metav1alpha1
 
+# ==============================================================================
+# E2E Test for FluentBit XRD (Kubernetes-only)
+#
+# This test uses the Helm provider with ProviderConfig which uses
+# injected identity (no credentials needed - runs in-cluster).
+# ==============================================================================
+
+# Generate unique name using timestamp to avoid CI conflicts
 _now = str(int(math.floor(datetime.ticks())))
 _test_name = "e2e-fluentbit-" + _now
 
@@ -11,14 +19,39 @@ _items = [
         metadata.name = "fluentbit-helm"
         spec = {
             crossplane = {
-                version = "2.0.2-up.5"
-                autoUpgrade.channel = "None"
+                autoUpgrade.channel = "Rapid"
             }
             defaultConditions = ["Ready"]
             timeoutSeconds = 1800
-            cleanupTimeoutSeconds = 600
+            cleanupTimeoutSeconds = 1800
             skipDelete = False
+
+            # ==============================================================
+            # extraResources: RBAC and Helm ProviderConfig
+            # These are NOT deleted during cleanup
+            # ==============================================================
             extraResources = [
+                # Grant cluster-admin to all SAs in crossplane-system namespace
+                # This allows the Helm provider to create namespaces and install charts
+                {
+                    apiVersion = "rbac.authorization.k8s.io/v1"
+                    kind = "ClusterRoleBinding"
+                    metadata.name = "crossplane-system-cluster-admin"
+                    roleRef = {
+                        apiGroup = "rbac.authorization.k8s.io"
+                        kind = "ClusterRole"
+                        name = "cluster-admin"
+                    }
+                    subjects = [
+                        {
+                            kind = "Group"
+                            name = "system:serviceaccounts:crossplane-system"
+                            apiGroup = "rbac.authorization.k8s.io"
+                        }
+                    ]
+                }
+                # Helm ProviderConfig - uses in-cluster identity
+                # Must use helm.m.crossplane.io to match the Release API
                 {
                     apiVersion = "helm.m.crossplane.io/v1beta1"
                     kind = "ProviderConfig"
@@ -33,6 +66,11 @@ _items = [
                     }
                 }
             ]
+
+            # ==============================================================
+            # manifests: The FluentBit XR to test
+            # Resources here ARE deleted during cleanup
+            # ==============================================================
             manifests = [
                 helmv1alpha1.FluentBit {
                     metadata = {
