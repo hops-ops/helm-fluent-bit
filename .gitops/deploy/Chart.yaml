@@ -1,6 +1,0 @@
-apiVersion: v2
-name: helm-fluent-bit
-description: Deploy helm-fluent-bit Crossplane configuration
-type: application
-version: 0.1.0
-appVersion: 0.54.1
